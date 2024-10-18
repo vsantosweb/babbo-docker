@@ -1,0 +1,6 @@
+[submodule "babbo-frontend-hub"]
+	path = babbo-frontend-hub
+	url = https://github.com/vsantosweb/babbo-frontend-hub.git
+[submodule "babbo-backend"]
+	path = babbo-backend
+	url = https://github.com/vsantosweb/babbo-backend.git
