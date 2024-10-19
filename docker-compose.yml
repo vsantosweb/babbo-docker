@@ -1,14 +1,12 @@
-version: '3.8'
-
 services:
   #backend
   backend:
     build:
-      context: ./backend
+      context: ./babbo-backend
       dockerfile: Dockerfile
     container_name: backend
     volumes:
-      - ./backend:/var/www/html
+      - ./babbo-backend:/var/www/html
     working_dir: /var/www/html
     ports:
       - "80:80"  # Mapear a porta 80 do contêiner para 8000 no host
@@ -20,13 +18,13 @@ services:
   #client
   client:
     build:
-      context: ./frontend-hub
+      context: ./babbo-frontend-hub
       dockerfile: Dockerfile
     container_name: client
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend-hub:/app
+      - ./babbo-frontend-hub:/app
     environment:
       NODE_ENV: development
     command: [ "npx", "nx", "dev", "client", "--port=3000" ]
@@ -35,22 +33,22 @@ services:
     networks:
       - backend-network
     #client
-  admin:
-    build:
-      context: ./frontend-hub
-      dockerfile: Dockerfile
-    container_name: admin
-    ports:
-      - "3001:3001"
-    volumes:
-      - ./frontend-hub:/app
-    environment:
-      NODE_ENV: development
-    command: [ "npx", "nx", "dev", "admin", "--port=3001" ]
-    extra_hosts:
-      - api.backend.local:172.20.0.5
-    networks:
-      - backend-network
+  # admin:
+  #   build:
+  #     context: ./babbo-frontend-hub
+  #     dockerfile: Dockerfile
+  #   container_name: admin
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - ./babbo-frontend-hub:/app
+  #   environment:
+  #     NODE_ENV: development
+  #   command: [ "npx", "nx", "dev", "admin", "--port=3001" ]
+  #   extra_hosts:
+  #     - api.backend.local:172.20.0.5
+  #   networks:
+  #     - backend-network
 
   #nginx
   # nginx:
