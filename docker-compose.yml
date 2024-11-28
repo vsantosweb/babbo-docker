@@ -1,102 +1,107 @@
 services:
 
   # db database
-  db:
-    image: mysql:8
-    container_name: mysql
-    volumes:
-      - ./docker/mysql/dbdata:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: babbo
-      MYSQL_USER: root
-      MYSQL_PASSWORD: developer
-    networks:
-      - backend-network
-
-  rabbitmq:
-    image: rabbitmq:4.0-management
-    container_name: rabbitmq
-    environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
-    ports:
-      - "5672:5672"  # Porta do RabbitMQ
-      - "15672:15672"  # Porta da interface de gerenciamento
-    networks:
-      - backend-network
-  #backend
-  backend:
-    build:
-      context: ./babbo-backend
-      dockerfile: Dockerfile
-    container_name: backend
-    volumes:
-      - ./babbo-backend:/var/www/html
-    working_dir: /var/www/html
-    ports:
-      - "80:80"  # Mapear a porta 80 do contêiner para 8000 no host
-    networks:
-      - backend-network
-    depends_on:
-      - db
-      - rabbitmq
-    command: ./entrypoint.sh
-
-  
-      
-  #client
-  # client:
-  #   build:
-  #     context: ./babbo-frontend-hub
-  #     dockerfile: Dockerfile
-  #   container_name: client
-  #   ports:
-  #     - "3000:3000"
+  # db:
+  #   image: mysql:8
+  #   container_name: mysql
   #   volumes:
-  #     - ./babbo-frontend-hub:/app
+  #     - ./docker/mysql/dbdata:/var/lib/mysql
+  #   ports:
+  #     - "3306:3306"
   #   environment:
-  #     NODE_ENV: development
-  #   command: [ "npx", "nx", "dev", "client", "--port=3000" ]
-  #   extra_hosts:
-  #     - api.backend.local:172.20.0.5
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_DATABASE: babbo
+  #     #MYSQL_USER: root
+  #     MYSQL_PASSWORD: developer
   #   networks:
-  #     - backend-network
-    #client
-  # admin:
+  #     - shared-network
+
+  #rabbitmq
+  # rabbitmq:
+  #   image: rabbitmq:4.0-management
+  #   container_name: rabbitmq
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: guest
+  #     RABBITMQ_DEFAULT_PASS: guest
+  #   ports:
+  #     - "5672:5672" # Porta do RabbitMQ
+  #     - "15672:15672" # Porta da interface de gerenciamento
+  #   networks:
+  #     - shared-network
+
+  #backend
+  # backend:
+  #   build:
+  #     context: ./babbo-backend
+  #     dockerfile: Dockerfile
+  #   container_name: backend
+  #   volumes:
+  #     - ./babbo-backend:/var/www/html
+  #   working_dir: /var/www/html
+  #   ports:
+  #     - "80:80" # Mapear a porta 80 do contêiner para 8000 no host
+  #   networks:
+  #     - shared-network
+  #   depends_on:
+  #     - db
+  #     - rabbitmq
+  #   command: ./entrypoint.sh
+
+  #client
+  client:
+    build:
+      context: './babbo-frontend-hub'
+      dockerfile: Dockerfile
+    container_name: client
+    image: client
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./babbo-frontend-hub:/usr/src/app
+      - /usr/src/app/node_modules  # Ignora node_modules para evitar conflitos
+    command: [ "npx", "nx", "dev", "client", "--port=3001" ]
+    extra_hosts:
+      - api.backend.local:172.20.0.5
+    networks:
+      - shared-network
+
+  #manager
+  # manager:
   #   build:
   #     context: ./babbo-frontend-hub
   #     dockerfile: Dockerfile
-  #   container_name: admin
+  #   container_name: manager
+  #   image: manager
   #   ports:
   #     - "3001:3001"
   #   volumes:
-  #     - ./babbo-frontend-hub:/app
+  #     - ./manager:/app
   #   environment:
   #     NODE_ENV: development
-  #   command: [ "npx", "nx", "dev", "admin", "--port=3001" ]
+  #   command: [ "npx", "nx", "dev", "manager", "--port=3001" ]
   #   extra_hosts:
   #     - api.backend.local:172.20.0.5
   #   networks:
-  #     - backend-network
+  #     - shared-network
 
-  #nginx
-  # nginx:
-  #   image: nginx:latest
-  #   container_name: Nginx
-  #   volumes:
-  #     - ./backend:/var/www/html
-  #     - ./frontend-hub:/app
-  #     - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+  #store
+  # store:
+  #   build:
+  #     context: ./babbo-frontend-hub
+  #     dockerfile: Dockerfile
+  #   container_name: store
+  #   image: store
   #   ports:
-  #     - "8000:80"
+  #     - "3002:3002"
+  #   volumes:
+  #     - ./store:/app
+  #   environment:
+  #     NODE_ENV: development
+  #   command: [ "npx", "nx", "dev", "store", "--port=3002" ]
+  #   extra_hosts:
+  #     - api.backend.local:172.20.0.5
   #   networks:
-  #     - backend-network
-  #   depends_on:
-  #     - backend
-
+  #     - shared-network
 networks:
-  backend-network:
+  shared-network:
     driver: bridge
