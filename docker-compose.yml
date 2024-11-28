@@ -1,4 +1,32 @@
 services:
+
+  # db database
+  db:
+    image: mysql:8
+    container_name: mysql
+    volumes:
+      - ./docker/mysql/dbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: babbo
+      MYSQL_USER: root
+      MYSQL_PASSWORD: developer
+    networks:
+      - backend-network
+
+  rabbitmq:
+    image: rabbitmq:4.0-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"  # Porta do RabbitMQ
+      - "15672:15672"  # Porta da interface de gerenciamento
+    networks:
+      - backend-network
   #backend
   backend:
     build:
@@ -14,24 +42,28 @@ services:
       - backend-network
     depends_on:
       - db
+      - rabbitmq
+    command: ./entrypoint.sh
 
+  
+      
   #client
-  client:
-    build:
-      context: ./babbo-frontend-hub
-      dockerfile: Dockerfile
-    container_name: client
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./babbo-frontend-hub:/app
-    environment:
-      NODE_ENV: development
-    command: [ "npx", "nx", "dev", "client", "--port=3000" ]
-    extra_hosts:
-      - api.backend.local:172.20.0.5
-    networks:
-      - backend-network
+  # client:
+  #   build:
+  #     context: ./babbo-frontend-hub
+  #     dockerfile: Dockerfile
+  #   container_name: client
+  #   ports:
+  #     - "3000:3000"
+  #   volumes:
+  #     - ./babbo-frontend-hub:/app
+  #   environment:
+  #     NODE_ENV: development
+  #   command: [ "npx", "nx", "dev", "client", "--port=3000" ]
+  #   extra_hosts:
+  #     - api.backend.local:172.20.0.5
+  #   networks:
+  #     - backend-network
     #client
   # admin:
   #   build:
@@ -64,22 +96,6 @@ services:
   #     - backend-network
   #   depends_on:
   #     - backend
-
-  # db database
-  db:
-    image: mysql:8
-    container_name: mysql
-    volumes:
-      - ./docker/mysql/dbdata:/var/lib/mysql
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: babbo
-      MYSQL_USER: root
-      MYSQL_PASSWORD: developer
-    networks:
-      - backend-network
 
 networks:
   backend-network:
